@@ -1,36 +1,51 @@
 class ProductsController < ApplicationController
   def index
     products = Product.all
-    render json: products.as_json
+    render json: products
   end
 
   def show
     the_id = params[:id]
     product = Product.find_by(id: the_id)
-    render json: product.as_json
+    render json: product
   end
 
   def create
     product = Product.new(
-      # name: params[:input_name],
-      # price: params[:input_price],
-      # description: params[:input_description],
-      # image_url: params[:input_image_url],
-      name: "NAME", price: 50, description: "awlegbhluirehguiaer", image_url: "URL",
+      name: params[:name],
+      price: params[:price],
+      description: params[:description],
+      image_url: params[:image_url],
+      supplier_id: params[:supplier_id],
     )
-    # product.save
-    render json: product.as_json
+    if product.save
+      render json: product
+    else
+      render json: { errors: product.errors.full_messages }, status: unprocessable_entity
+    end
   end
 
   def update
     the_id = params[:id]
     product = Product.find_by(id: the_id)
-    product.name = params[:input_name]
-    product.description = params[:input_description]
-    product.image_url = params[:input_image_url]
-    product.price = params[:input_price]
+    product.name = params[:name] || product.name
+    product.description = params[:description] || product.description
+    product.image_url = params[:image_url] || product.image_url
+    product.price = params[:price] || product.price
+    product.supplier = params[:supplier] || product.supplier
+    product.supplier_id = params[:supplier_id] || product.supplier_id
 
-    product.save
-    render json: product.as_json
+    if product.save
+      render json: product
+    else
+      render json: { errors: product.errors.full_messages }, status: unprocessable_entity
+    end
+  end
+
+  def destroy
+    the_id = params[:id]
+    product = Product.find_by(id: the_id)
+    product.destroy
+    render json: product
   end
 end
