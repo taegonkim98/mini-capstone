@@ -1,12 +1,19 @@
 class OrdersController < ApplicationController
+  before_action :authenticate_user
   def create
+    product = Product.find_by(id: params[:product_id])
+    calc_quantity = params[:quantity].to_i
+    calc_subtotal = calc_quantity * product.price
+    calc_tax = product.tax * calc_quantity
+    calc_total = calc_subtotal + calc_tax
+
     order = Order.new(
       user_id: current_user.id,
       product_id: params[:product_id],
       quantity: params[:quantity],
-      subtotal: price * quantity,
-      tax: subtotal * 0.09,
-      total: tax + subtotal,
+      subtotal: calc_subtotal,
+      tax: calc_tax,
+      total: calc_total,
     )
     order.save
     render json: order.as_json
@@ -15,7 +22,7 @@ class OrdersController < ApplicationController
   def show
     if current_user
       the_id = params[:id]
-      order = Order.find_by(id: the_id)
+      order = Order.find_by(id: the_id, user_id: current_user.id)
       render json: order
     else
       render json: { message: "Only current user can view order" }
@@ -24,10 +31,10 @@ class OrdersController < ApplicationController
 
   def index
     if current_user
-      orders = Order.all
-      render json: orders
+      orders = Order.where(user_id: current_user.id)
+      render json: orders.as_json
     else
-      render json: { message: "Only current user can view orders" }
+      render json: [], status :unauthorized
     end
   end
 end

@@ -1,5 +1,9 @@
 class ProductsController < ApplicationController
+  before_action :authenticate_admin, only: [:create, :update, :destroy]
+
   def index
+    category = params[:category]
+
     products = Product.all
     render json: products
   end
